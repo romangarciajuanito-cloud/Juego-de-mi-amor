@@ -1,141 +1,211 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego: ¿Cuánto te quiero Fátima?</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¿Cuánto te quiero Fátima?</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+<style>
+body{
+background: linear-gradient(135deg,#0f172a,#4c1d95,#db2777);
+}
+.card{
+background: rgba(255,255,255,0.08);
+backdrop-filter: blur(15px);
+border-radius: 25px;
+padding: 25px;
+box-shadow: 0 0 40px rgba(255,0,150,0.3);
+}
+.btn{
+background: linear-gradient(45deg,#ff3cac,#784ba0);
+padding: 12px;
+border-radius: 15px;
+width:100%;
+margin-top:10px;
+transition:0.3s;
+}
+.btn:hover{
+transform: scale(1.05);
+}
+</style>
+
 </head>
 
-<body class="bg-gradient-to-br from-pink-500 via-purple-600 to-blue-400 text-white min-h-screen flex items-center justify-center">
+<body class="text-white flex items-center justify-center min-h-screen">
 
-<div id="start-screen" class="text-center">
-    <h1 class="text-3xl font-bold mb-5">¡Bienvenida Fátima! ❤️</h1>
-    <button id="start-btn" class="px-6 py-3 bg-white/20 rounded-xl">Empezar</button>
+<!-- INICIO -->
+<div id="start" class="card text-center max-w-sm">
+<h1 class="text-3xl font-bold mb-4 text-pink-400">¡Bienvenida Fátima!</h1>
+
+<i class="fa fa-heart text-6xl text-pink-400 animate-pulse mb-4"></i>
+
+<p class="mb-6">
+He preparado este juego para demostrarte lo mucho que significas para mí.
+Responde bien para descubrir cuánto te quiero 💖 (3 vidas)
+</p>
+
+<button onclick="startGame()" class="btn">¡Empezar a jugar!</button>
 </div>
 
-<div id="game-screen" class="hidden text-center">
-    <div id="lives" class="mb-4">❤️❤️❤️</div>
-    <h2 id="question-title"></h2>
-    <p id="question-text" class="mb-4"></p>
-    <div id="options-container"></div>
-    <div id="feedback" class="hidden mt-3"></div>
-    <button id="next-btn" class="hidden mt-4 bg-white/20 px-4 py-2 rounded">Siguiente</button>
+<!-- JUEGO -->
+<div id="game" class="card hidden text-center max-w-sm">
+
+<div id="lives" class="mb-3 text-xl">❤️❤️❤️</div>
+
+<h2 id="title" class="font-bold"></h2>
+<p id="question" class="mb-4"></p>
+
+<div id="options"></div>
+
+<div id="msg" class="hidden mt-3 p-2 bg-white/10 rounded"></div>
+
+<button id="next" onclick="nextQ()" class="btn hidden">Siguiente</button>
+
 </div>
 
-<div id="lose-screen" class="hidden text-center">
-    <h2 class="text-2xl mb-4">Perdiste 😢</h2>
-    <button id="restart-btn-lose" class="bg-white/20 px-4 py-2 rounded">Reintentar</button>
+<!-- PERDER -->
+<div id="lose" class="card hidden text-center">
+<h2 class="text-xl mb-3">😢 Sin vidas</h2>
+<p class="mb-4">Pero mi amor por ti sigue infinito 💖</p>
+<button onclick="restart()" class="btn">Intentar otra vez</button>
 </div>
 
-<div id="final-screen" class="hidden text-center">
-    <h2 class="text-2xl mb-4">¡Lo lograste! ❤️</h2>
-    <p>Te quiero más que todo en el universo 💖</p>
+<!-- FINAL -->
+<div id="final" class="card hidden text-center">
+<h2 class="text-xl mb-3">💖 Lo lograste</h2>
+<p>
+Te quiero más que a las estrellas, más que al universo entero  
+y más que todo lo que existe 💫  
+Eres mi todo Fátima ❤️
+</p>
 </div>
 
 <script>
+
 const questions = [
-    {
-        title: "Nivel 1",
-        text: "¿Cuánto te quiero?",
-        options: ["Poquito", "Mucho", "Inmensamente", "Más allá de las estrellas"],
-        correctIndex: 3
-    },
-    {
-        title: "Nivel 2",
-        text: "¿Qué eres para mí?",
-        options: ["Amiga", "Especial", "Amor", "Mi mundo"],
-        correctIndex: 3
-    }
+{
+t:"Nivel 1",
+q:"¿Cuánto crees que te quiero?",
+o:["Poquito","Mucho","Inmensamente","Más allá de las estrellas"],
+c:3,
+ok:"💖 Correcto... pero esto apenas empieza",
+bad:"😢 Te quiero mucho más que eso..."
+},
+{
+t:"Nivel 2",
+q:"¿Con qué comparo mi amor?",
+o:["Montaña","Océano","Universo","Casa"],
+c:2,
+ok:"💖 Es infinito como el universo",
+bad:"😢 Es mucho más grande..."
+},
+{
+t:"Nivel 3",
+q:"¿Qué siento al verte?",
+o:["Alegría","Mariposas","Felicidad","Todo y más"],
+c:3,
+ok:"💖 No tiene explicación lo que siento",
+bad:"😢 Es mucho más que eso..."
+},
+{
+t:"Nivel 4",
+q:"¿Qué eres para mí?",
+o:["Amiga","Especial","Amor","Mi mundo"],
+c:3,
+ok:"💖 Eres todo para mí",
+bad:"😢 Eres más importante..."
+},
+{
+t:"Final",
+q:"¿Cuánto te quiero?",
+o:["No se puede","Más que mi vida","Más que todo","Todo y más"],
+c:3,
+ok:"💖 Descubriste la verdad",
+bad:"😢 Te quiero más de lo que imaginas"
+}
 ];
 
-let currentQuestion = 0;
-let lives = 3;
-let answered = false;
+let i=0,l=3,done=false;
 
-document.getElementById('start-btn').onclick = () => {
-    document.getElementById('start-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    loadQuestion();
-};
-
-document.getElementById('restart-btn-lose').onclick = () => {
-    lives = 3;
-    currentQuestion = 0;
-    document.getElementById('lose-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    loadQuestion();
-};
-
-document.getElementById('next-btn').onclick = () => {
-    currentQuestion++;
-    loadQuestion();
-};
-
-function loadQuestion() {
-    answered = false;
-    document.getElementById('feedback').classList.add('hidden');
-    document.getElementById('next-btn').classList.add('hidden');
-
-    const q = questions[currentQuestion];
-
-    document.getElementById('question-title').textContent = q.title;
-    document.getElementById('question-text').textContent = q.text;
-
-    const container = document.getElementById('options-container');
-    container.innerHTML = '';
-
-    q.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.textContent = opt;
-        btn.className = "block w-full mb-2 bg-white/20 p-2 rounded";
-        btn.onclick = () => checkAnswer(i);
-        container.appendChild(btn);
-    });
-
-    updateLives();
+function startGame(){
+start.classList.add('hidden');
+game.classList.remove('hidden');
+load();
 }
 
-function checkAnswer(index) {
-    if (answered) return;
-    answered = true;
-
-    const q = questions[currentQuestion];
-    const feedback = document.getElementById('feedback');
-
-    if (index === q.correctIndex) {
-        feedback.textContent = "Correcto 💖";
-        
-        if (currentQuestion === questions.length - 1) {
-            setTimeout(() => {
-                document.getElementById('game-screen').classList.add('hidden');
-                document.getElementById('final-screen').classList.remove('hidden');
-            }, 1000);
-        } else {
-            document.getElementById('next-btn').classList.remove('hidden');
-        }
-    } else {
-        feedback.textContent = "Incorrecto 😢";
-        lives--;
-        updateLives();
-
-        if (lives <= 0) {
-            setTimeout(() => {
-                document.getElementById('game-screen').classList.add('hidden');
-                document.getElementById('lose-screen').classList.remove('hidden');
-            }, 1000);
-        } else {
-            document.getElementById('next-btn').classList.remove('hidden');
-        }
-    }
-
-    feedback.classList.remove('hidden');
+function restart(){
+l=3;i=0;
+lose.classList.add('hidden');
+game.classList.remove('hidden');
+load();
 }
 
-function updateLives() {
-    document.getElementById('lives').textContent = "❤️".repeat(lives);
+function load(){
+done=false;
+msg.classList.add('hidden');
+next.classList.add('hidden');
+
+let x=questions[i];
+
+title.innerText=x.t;
+question.innerText=x.q;
+options.innerHTML="";
+
+x.o.forEach((op,index)=>{
+let b=document.createElement("button");
+b.innerText=op;
+b.className="btn";
+b.onclick=()=>check(index);
+options.appendChild(b);
+});
+
+lives.innerText="❤️".repeat(l);
 }
+
+function check(index){
+if(done)return;
+done=true;
+
+let x=questions[i];
+
+if(index===x.c){
+msg.innerText=x.ok;
+
+if(i===questions.length-1){
+setTimeout(()=>{
+game.classList.add('hidden');
+final.classList.remove('hidden');
+},1200);
+}else{
+next.classList.remove('hidden');
+}
+
+}else{
+msg.innerText=x.bad;
+l--;
+
+if(l<=0){
+setTimeout(()=>{
+game.classList.add('hidden');
+lose.classList.remove('hidden');
+},1200);
+}else{
+next.classList.remove('hidden');
+}
+}
+
+msg.classList.remove('hidden');
+lives.innerText="❤️".repeat(l);
+}
+
+function nextQ(){
+i++;
+load();
+}
+
 </script>
 
 </body>
