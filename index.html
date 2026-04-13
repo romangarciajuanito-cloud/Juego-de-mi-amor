@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego: ¿Cuánto te quiero Fátima?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        space: '#020617',
+                        nebula1: '#312E81',
+                        nebula2: '#831843',
+                        star: '#FEF3C7',
+                        love: '#F472B6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .star {
+                @apply absolute rounded-full bg-star;
+            }
+            .option-btn {
+                @apply w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-white/10 hover:border-white/30 backdrop-blur-sm text-white text-left;
+            }
+            .correct {
+                @apply bg-green-500/30 border-green-400/50;
+            }
+            .incorrect {
+                @apply bg-red-500/30 border-red-400/50;
+            }
+        }
+    </style>
+</head>
+<body class="bg-space text-white min-h-screen overflow-hidden flex items-center justify-center">
+    <!-- Fondo de universo -->
+    <div class="absolute inset-0 overflow-hidden -z-10" id="universeContainer">
+        <div id="stars-bg" class="absolute inset-0"></div>
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[300vw] h-[300vw]">
+            <div id="galaxy" class="absolute w-full h-full rounded-full" style="background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.05) 40%, transparent 70%); transform-style: preserve-3d;"></div>
+        </div>
+    </div>
+    
+    <!-- Pantalla de inicio -->
+    <div id="start-screen" class="relative z-10 text-center px-6 py-10 bg-black/40 backdrop-blur-lg rounded-3xl border border-white/20 max-w-sm mx-4 shadow-[0_0_60px_rgba(244,114,182,0.4)]">
+        <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold mb-5 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+            ¡Bienvenida Fátima!
+        </h1>
+        
+        <div class="my-7">
+            <i class="fa fa-heart text-7xl text-love animate-pulse" style="text-shadow: 0 0 25px rgba(244,114,182,0.8);"></i>
+        </div>
+        
+        <p class="text-lg mb-8 leading-relaxed text-white/95">
+            He preparado este juego para demostrarte lo mucho que significas para mí. Tendrás que responder unas preguntas sencillas para descubrir cuánto te quiero. ¡Tienes 3 vidas!
+        </p>
+        
+        <button id="start-btn" class="px-8 py-4 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition-all text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            ¡Empezar a jugar!
+        </button>
+    </div>
+    
+    <!-- Pantalla de juego -->
+    <div id="game-screen" class="hidden relative z-10 text-center px-6 py-10 bg-black/40 backdrop-blur-lg rounded-3xl border border-white/20 max-w-sm mx-4 shadow-[0_0_60px_rgba(244,114,182,0.4)]">
+        <!-- Vidas -->
+        <div class="flex justify-center gap-2 mb-5">
+            <i class="fa fa-heart text-xl text-love" id="life1"></i>
+            <i class="fa fa-heart text-xl text-love" id="life2"></i>
+            <i class="fa fa-heart text-xl text-love" id="life3"></i>
+        </div>
+        
+        <div id="question-container">
+            <h2 id="question-title" class="text-xl font-bold mb-4 text-white/90">Pregunta 1</h2>
+            <p id="question-text" class="text-lg mb-6">¿Cuánto crees que te quiero?</p>
+            
+            <div id="options-container" class="space-y-3 mb-8">
+                <button class="option-btn">Un poquito</button>
+                <button class="option-btn">Mucho</button>
+                <button class="option-btn">Inmensamente</button>
+                <button class="option-btn">Más allá de las estrellas</button>
+            </div>
+        </div>
+        
+        <div id="feedback" class="hidden mb-6 p-3 rounded-xl bg-white/10 backdrop-blur-sm"></div>
+        
+        <button id="next-btn" class="hidden w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition-all text-white font-semibold shadow-lg">
+            Siguiente pregunta
+        </button>
+        
+        <div class="mt-4 text-xs text-white/50">
+            <span id="current-question">1</span>/5
+        </div>
+    </div>
+    
+    <!-- Pantalla por perder -->
+    <div id="lose-screen" class="hidden relative z-10 text-center px-6 py-10 bg-black/40 backdrop-blur-lg rounded-3xl border border-white/20 max-w-sm mx-4 shadow-[0_0_60px_rgba(244,114,182,0.4)]">
+        <h2 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold mb-5 text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-400">
+            ¡Oh no!
+        </h2>
+        
+        <div class="my-7">
+            <i class="fa fa-frown-o text-7xl text-red-400" style="text-shadow: 0 0 25px rgba(248,113,113,0.8);"></i>
+        </div>
+        
+        <p class="text-lg mb-6 leading-relaxed text-white/95">
+            Te has quedado sin vidas... Pero no importa, ¡mi amor por ti es infinito y siempre te daré otra oportunidad!
+        </p>
+        
+        <button id="restart-btn-lose" class="px-8 py-4 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 transition-all text-white font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+            Intentar de nuevo
+        </button>
+    </div>
+    
+    <!-- Pantalla final -->
+    <div id="final-screen" class="hidden relative z-10 text-center px-6 py-10 bg-black/40 backdrop-blur-lg rounded-3xl border border-white/20 max-w-sm mx-4 shadow-[0_0_60px_rgba(244,114,182,0.4)]">
+        <h2 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold mb-5 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+            ¡Lo lograste!
+        </h2>
+        
+        <div class="my-7 relative">
+            <div class="inline-block relative">
+                <i class="fa fa-heart text-8xl text-love animate-pulse" style="text-shadow: 0 0 30px rgba(244,114,182,1);"></i>
+                <div class="absolute inset-0 animate-ping-slow opacity-70">
+                    <i class="fa fa-heart text-8xl text-love/50"></i>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-lg mb-6 leading-relaxed text-white/95">
+            Fátima, ahora ya sabes cuánto te quiero:
+        </p>
+        
+        <div class="bg-white/10 p-4 rounded-xl mb-6 backdrop-blur-sm">
+            <p class="text-xl font-semibold text-love">
+                Te quiero más que a las estrellas del universo, más que a los granos de arena de todos los planetas y más que a toda la belleza que existe en el cosmos. ¡Eres mi todo!
+            </p>
+        </div>
+        
+        <p class="text-white/80 text-sm">
+            Gracias por ser la luz que ilumina mi camino. ❤️
+        </p>
+    </div>
+
+    <style>
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes ping-slow {
+            0% { transform: scale(1); opacity: 0.7; }
+            75%, 100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .animate-ping-slow {
+            animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        
+        @keyframes rotate-universe {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .rotate-universe {
+            animation: rotate-universe 80s linear infinite;
+        }
+    </style>
+
+    <script>
+        // Preguntas y respuestas
+        const questions = [
+            {
+                title: "Nivel 1: El inicio",
+                text: "¿Cuánto crees que te quiero?",
+                options: ["Un poquito", "Mucho", "Inmensamente", "Más allá de las estrellas"],
+                correctIndex: 3,
+                feedback: "¡Correcto! Pero esto es solo el comienzo..."
+            },
+            {
+                title: "Nivel 2: La magnitud",
+                text: "¿Con qué compararía mi amor por ti?",
+                options: ["Con una montaña", "Con el océano", "Con el universo entero", "Con una casa"],
+                correctIndex: 2,
+                feedback: "¡Exacto! Mi amor es tan grande que no cabe en la Tierra..."
+            },
+            {
+                title: "Nivel 3: El sentimiento",
+                text: "¿Qué siento cada vez que te veo?",
+                options: ["Alegría inmensa", "Mariposas en el estómago", "Felicidad total", "Todo lo anterior y algo inexplicable"],
+                correctIndex: 3,
+                feedback: "¡Así es! Lo que siento por ti va más allá de las palabras..."
+            },
+            {
+                title: "Nivel 4: La importancia",
+                text: "¿Qué eres tú para mí?",
+                options: ["Una amiga", "Una persona especial", "El amor de mi vida", "Mi mundo entero"],
+                correctIndex: 3,
+                feedback: "¡Acertaste! Eres todo lo que siempre he buscado..."
+            },
+            {
+                title: "Nivel Final: La verdad",
+                text: "¿Cuánto te quiero realmente?",
+                options: ["No tengo palabras para explicarlo", "Más que a mi vida", "Más que a nada en este mundo", "Todo lo anterior y mucho más"],
+                correctIndex: 3,
+                feedback: "¡Perfecto! Has descubierto la verdad..."
+            }
+        ];
+        
+        // Variables de control
+        let currentQuestion = 0;
+        let answered = false;
+        let lives = 3;
+        const maxLives = 3;
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            const starsBg = document.getElementById('stars-bg');
+            const galaxy = document.getElementById('galaxy');
+            const starCount = 200;
+            
+            // Aplicar rotación al universo
+            galaxy.classList.add('rotate-universe');
+            
+            // Generar estrellas de fondo
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                // Tamaño aleatorio
+                const size = Math.random() * 2 + 0.5 + 'px';
+                star.style.width = size;
+                star.style.height = size;
+                
+                // Posición aleatoria
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                // Animación
+                const duration = Math.random() * 4 + 2 + 's';
+                const delay = Math.random() * 3 + 's';
+                star.style.animation = `twinkle ${duration} ease-in-out ${delay} infinite`;
+                
+                starsBg.appendChild(star);
+            }
+            
+            // Eventos
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('next-btn').addEventListener('click', nextQuestion);
+            document.getElementById('restart-btn-lose').addEventListener('click', restartGame);
+            
+            // Eventos para las opciones (se agregan dinámicamente)
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('option-btn') && !answered) {
+                    checkAnswer(e.target);
+                }
+            });
+        });
+        
+        // Iniciar juego
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            resetLives();
+            loadQuestion();
+        }
+        
+        // Reiniciar juego tras perder
+        function restartGame() {
+            document.getElementById('lose-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            currentQuestion = 0;
+            resetLives();
+            loadQuestion();
+        }
+        
+        // Reiniciar vidas
+        function resetLives() {
+            lives = maxLives;
+            updateLivesDisplay();
+        }
+        
+        // Actualizar visualización de vidas
+        function updateLivesDisplay() {
+            for (let i = 1; i <= maxLives; i++) {
+                const lifeEl = document.getElementById(`life${i}`);
+                if (i <= lives) {
+                    lifeEl.classList.remove('text-gray-500', 'opacity-40');
+                    lifeEl.classList.add('text-love');
+                } else {
+                    lifeEl.classList.remove('text-love');
+                    lifeEl.classList.add('text-gray-500', 'opacity-40');
+                }
+            }
+        }
+        
+        // Cargar pregunta actual
+        function loadQuestion() {
+            answered = false;
+            const question = questions[currentQuestion];
+            
+            document.getElementById('question-title').textContent = question.title;
+            document.getElementById('question-text').textContent = question.text;
+            document.getElementById('current-question').textContent = currentQuestion + 1;
+            
+            // Limpiar opciones anteriores
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            // Crear nuevas opciones
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.dataset.index = index;
+                optionsContainer.appendChild(button);
+            });
+            
+            // Ocultar elementos
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+        }
+        
+        // Verificar respuesta
